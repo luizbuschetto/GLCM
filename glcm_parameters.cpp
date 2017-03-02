@@ -9,17 +9,17 @@ void glcm(Mat &);
 
 int main()
 {
-      Mat img = imread("/home/luiz/GitHub/extract_features/control_1.jpg", 0);
+      Mat img = imread("/home/luiz/Desktop/0.jpg"); //ERA 0
       if(img.empty())
       {
          cout << "No image!";
          return 0;
       }
-
+      cvtColor(img, img, CV_RGB2GRAY);
       glcm(img);
-      namedWindow("Image", WINDOW_NORMAL);
-      imshow("Image", img);
-      waitKey(0);
+      // namedWindow("Image", WINDOW_NORMAL);
+      // imshow("Image", img);
+      // waitKey(0);
       return 0;
 }
 
@@ -36,6 +36,7 @@ void glcm(Mat &img)
   gl = gl + gl.t();
   gl = gl / sum(gl)[0];
 
+  //Mean: Surface Defect Isolation in Ceramic Tile Based on Texture Feature Analysis Using Radon Transform and FCM
   float mu_i = 0, mu_j = 0;
   for(int i = 0; i < 256; i++)
      for(int j = 0; j < 256; j++)
@@ -44,6 +45,7 @@ void glcm(Mat &img)
         mu_j = mu_j + (j * gl.at<float>(i,j));
      }
 
+   //Standard Deviation: http://www.fp.ucalgary.ca/mhallbey/glcm_variance.htm
    float sigma_i = 0, sigma_j = 0;
    for(int i = 0; i < 256; i++)
       for(int j = 0; j < 256; j++)
@@ -52,31 +54,34 @@ void glcm(Mat &img)
          sigma_j = sigma_j + ((i - mu_j) * (i - mu_j) * gl.at<float>(i,j));
       }
 
+    sigma_i = sqrt(sigma_i);
+    sigma_j = sqrt(sigma_j);
 
- float energy = 0, contrast = 0, homogenity = 0, IDM = 0, entropy = 0, mean = 0, correlation = 0;
- for(int i = 0; i < 256; i++)
-    for(int j = 0; j < 256; j++)
-    {
-        energy = energy + gl.at<float>(i,j) * gl.at<float>(i,j);
-        contrast = contrast + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
-        homogenity = homogenity + gl.at<float>(i,j) / (1 + abs(i-j));
-        mean = mean + 0.5 * (i * gl.at<float>(i,j) + j * gl.at<float>(i,j));
-        correlation = correlation + (((i - (i * mu_i)) * (j - (j * mu_j)) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
+   float energy = 0, contrast = 0, homogenity = 0, IDM = 0, entropy = 0, mean = 0, correlation = 0;
+   for(int i = 0; i < 256; i++)
+      for(int j = 0; j < 256; j++)
+      {
+          energy = energy + gl.at<float>(i,j) * gl.at<float>(i,j);
+          contrast = contrast + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
+          homogenity = homogenity + gl.at<float>(i,j) / (1 + abs(i-j));
+          mean = mean + 0.5 * (i * gl.at<float>(i,j) + j * gl.at<float>(i,j));
+          correlation = correlation + (((i - mu_i) * (j - mu_j) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
 
-        if(i != j)
-          //IDM = IDM + gl.at<float>(i,j) / ((i-j) * (i-j)); //Taking k=2;
-          IDM = IDM + (gl.at<float>(i,j) / abs(i-j));
+          if(i != j)
+            //IDM = IDM + gl.at<float>(i,j) / ((i-j) * (i-j)); //Taking k=2;
+            IDM = IDM + (gl.at<float>(i,j) / abs(i-j));
 
-        if(gl.at<float>(i,j) != 0)
-          entropy = entropy - gl.at<float>(i,j) * log10(gl.at<float>(i,j));
+          if(gl.at<float>(i,j) != 0)
+            entropy = entropy - gl.at<float>(i,j) * log10(gl.at<float>(i,j));
 
-    }
+      }
 
- cout << "Energy = " << energy << endl;
- cout << "Contrast = " << contrast << endl;
- cout << "Homogenity = " << homogenity << endl;
- cout << "IDM = " << IDM << endl;                     //Inverse difference moment
- cout << "Entropy = " << entropy << endl;
- cout << "Mean = " << mean << endl;
- cout << "Correlation = " << correlation << endl;
+   cout << "Contrast = " << contrast << endl;
+   cout << "Correlation = " << correlation << endl;
+   cout << "Energy = " << energy << endl;
+   cout << "Homogenity = " << homogenity << endl;
+   // cout << "IDM = " << IDM << endl;                     //Inverse difference moment
+   cout << "Entropy = " << entropy << endl;
+   // cout << "Mean = " << mean << endl;
+
 }
