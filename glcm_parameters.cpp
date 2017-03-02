@@ -57,6 +57,7 @@ void glcm(Mat &img)
     sigma_i = sqrt(sigma_i);
     sigma_j = sqrt(sigma_j);
 
+   //Equations: http://www.fp.ucalgary.ca/mhallbey/equations.htm
    float energy = 0, contrast = 0, homogenity = 0, IDM = 0, entropy = 0, mean = 0, correlation = 0;
    for(int i = 0; i < 256; i++)
       for(int j = 0; j < 256; j++)
@@ -72,8 +73,7 @@ void glcm(Mat &img)
             IDM = IDM + (gl.at<float>(i,j) / abs(i-j));
 
           if(gl.at<float>(i,j) != 0)
-            entropy = entropy - gl.at<float>(i,j) * log10(gl.at<float>(i,j));
-
+            entropy = entropy - gl.at<float>(i,j) * log(gl.at<float>(i,j));
       }
 
    cout << "Contrast = " << contrast << endl;
