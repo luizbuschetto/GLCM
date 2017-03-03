@@ -1,4 +1,29 @@
+// %       GLCM Features (Soh, 1999; Haralick, 1973; Clausi 2002)
+// %           f1. Uniformity / Energy / Angular Second Moment (done)
+// %           f2. Entropy (done)
+// %           f3. Dissimilarity
+// %           f4. Contrast / Inertia (done)
+// %           f5. Inverse difference
+// %           f6. correlation (done)
+// %           f7. Homogeneity / Inverse difference moment (done)
+// %           f8. Autocorrelation
+// %           f9. Cluster Shade
+// %          f10. Cluster Prominence
+// %          f11. Maximum probability
+// %          f12. Sum of Squares
+// %          f13. Sum Average
+// %          f14. Sum Variance
+// %          f15. Sum Entropy
+// %          f16. Difference variance
+// %          f17. Difference entropy
+// %          f18. Information measures of correlation (1)
+// %          f19. Information measures of correlation (2)
+// %          f20. Maximal correlation coefficient
+// %          f21. Inverse difference normalized (INN)
+// %          f22. Inverse difference moment normalized (IDN)
+
 #include <iostream>
+#include <math.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -9,7 +34,7 @@ void glcm(Mat &);
 
 int main()
 {
-      Mat img = imread("/home/luiz/Desktop/0.jpg"); //ERA 0
+      Mat img = imread("0.jpg"); //ERA 0
       if(img.empty())
       {
          cout << "No image!";
@@ -36,16 +61,20 @@ void glcm(Mat &img)
   gl = gl + gl.t();
   gl = gl / sum(gl)[0];
 
-  //Mean: Surface Defect Isolation in Ceramic Tile Based on Texture Feature Analysis Using Radon Transform and FCM
+  //Means
   float mu_i = 0, mu_j = 0;
+  float mu = 0;
   for(int i = 0; i < 256; i++)
      for(int j = 0; j < 256; j++)
      {
+        mu = mu + gl.at<float>(i,j);
         mu_i = mu_i + (i * gl.at<float>(i,j));
         mu_j = mu_j + (j * gl.at<float>(i,j));
      }
 
-   //Standard Deviation: http://www.fp.ucalgary.ca/mhallbey/glcm_variance.htm
+     mu = mu / pow(256, 2);
+
+   //Standard Deviation
    float sigma_i = 0, sigma_j = 0;
    for(int i = 0; i < 256; i++)
       for(int j = 0; j < 256; j++)
@@ -57,31 +86,44 @@ void glcm(Mat &img)
     sigma_i = sqrt(sigma_i);
     sigma_j = sqrt(sigma_j);
 
-   //Equations: http://www.fp.ucalgary.ca/mhallbey/equations.htm
-   float energy = 0, contrast = 0, homogenity = 0, IDM = 0, entropy = 0, mean = 0, correlation = 0;
+
+   float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, autoc = 0,
+         cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0;
+
    for(int i = 0; i < 256; i++)
       for(int j = 0; j < 256; j++)
       {
-          energy = energy + gl.at<float>(i,j) * gl.at<float>(i,j);
-          contrast = contrast + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
-          homogenity = homogenity + gl.at<float>(i,j) / (1 + abs(i-j));
-          mean = mean + 0.5 * (i * gl.at<float>(i,j) + j * gl.at<float>(i,j));
-          correlation = correlation + (((i - mu_i) * (j - mu_j) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
-
-          if(i != j)
-            //IDM = IDM + gl.at<float>(i,j) / ((i-j) * (i-j)); //Taking k=2;
-            IDM = IDM + (gl.at<float>(i,j) / abs(i-j));
+          autoc = autoc + i * j * gl.at<float>(i,j);
+          contr = contr + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
+          corrm = corrm + (((i - mu_i) * (j - mu_j) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
+          cprom = cprom + pow((i + j - mu_i - mu_j), 4) * gl.at<float>(i, j);
+          cshad = cshad + pow((i + j - mu_i - mu_j), 3) * gl.at<float>(i, j);
+          dissi = dissi + (abs(i - j) * gl.at<float>(i, j));
+          energ = energ + gl.at<float>(i,j) * gl.at<float>(i,j);
 
           if(gl.at<float>(i,j) != 0)
-            entropy = entropy - gl.at<float>(i,j) * log(gl.at<float>(i,j));
+            entro = entro - gl.at<float>(i,j) * log(gl.at<float>(i,j));
+
+          homom = homom + gl.at<float>(i,j) / (1 + abs(i-j));
+          homop = homop + (gl.at<float>(i,j) / (1 + ((i - j) * (i - j))));
+
+          if (gl.at<float>(i, j) > maxpr)
+              maxpr = gl.at<float>(i, j);
+
+          sosvh = sosvh + ((pow(i - mu, 2)) * gl.at<float>(i, j));
       }
 
-   cout << "Contrast = " << contrast << endl;
-   cout << "Correlation = " << correlation << endl;
-   cout << "Energy = " << energy << endl;
-   cout << "Homogenity = " << homogenity << endl;
-   // cout << "IDM = " << IDM << endl;                     //Inverse difference moment
-   cout << "Entropy = " << entropy << endl;
-   // cout << "Mean = " << mean << endl;
+   cout << "autoc = " << autoc << endl;   // Autocorrelation      [2]
+   cout << "contr = " << contr << endl;   // Contrast             [1,2]
+   cout << "corrm = " << corrm << endl;   // Correlation (MATLAB)
+   cout << "cprom = " << cprom << endl;   // Cluster Prominence   [2]
+   cout << "cshad = " << cshad << endl;   // Cluster Shade        [2]
+   cout << "dissi = " << dissi << endl;   // Dissimilarity        [2]
+   cout << "energ = " << energ << endl;   // Energy               [1,2]
+   cout << "entro = " << entro << endl;   // Entropy              [2]
+   cout << "homom = " << homom << endl;   // Homogenity (MATLAB)
+   cout << "homop = " << homop << endl;   // Homogenity/IDM       [2]
+   cout << "maxpr = " << maxpr << endl;   // Maximum probability  [2]
+   cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance [1]
 
 }
