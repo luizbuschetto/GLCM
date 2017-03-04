@@ -122,9 +122,14 @@ void glcm(Mat &img)
     }
 
    float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, autoc = 0,
-         cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0, HX = 0, HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0;
+         cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0,
+         HX = 0, HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0;
 
    for(int i = 0; i < numLevels; i++)
+   {
+      HX = HX - px[i] * log(px[i] + 0.0000000000001);
+      HY = HY - py[i] * log(py[i] + 0.0000000000001);
+
       for(int j = 0; j < numLevels; j++)
       {
           autoc = autoc + i * j * gl.at<float>(i,j);
@@ -146,12 +151,11 @@ void glcm(Mat &img)
 
           sosvh = sosvh + (pow(i - mu, 2) * gl.at<float>(i, j));
 
-          HX = HX - px[i] * log(px[i]);
-          HY = HY - py[j] * log(py[j]);
-          HXY = HXY - gl.at<float>(i, j) * log(gl.at<float>(i, j));
-          HXY1 = HXY1 - gl.at<float>(i, j) * log(px[i] * py[j]);
-          HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j]);
+          HXY = HXY - gl.at<float>(i, j) * log(gl.at<float>(i, j) + 0.0000000000001);
+          HXY1 = HXY1 - gl.at<float>(i, j) * log(px[i] * py[j] + 0.0000000000001);
+          HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j] + 0.0000000000001);
       }
+    }
 
       float valueH = 0;
 
@@ -161,6 +165,7 @@ void glcm(Mat &img)
         valueH = HY;
 
       inf1h = (HXY - HXY1) / valueH;
+      inf2h = pow((1 - exp(-2 * (HXY2 - HXY))), 0.5);
 
    cout << "autoc = " << autoc << endl;   // Autocorrelation      [2]
    cout << "contr = " << contr << endl;   // Contrast             [1,2]
@@ -179,6 +184,6 @@ void glcm(Mat &img)
    cout << "svarh = " << svarh << endl;   // Sum variance             [1]
    cout << "dvarh = " << dvarh << endl;   // Difference variance      [1]
    cout << "denth = " << denth << endl;   // Difference entropy       [1]
-   cout << "inf1h = " << inf1h << endl;
-   //cout << "inf2h = " << inf2h << endl;
+   cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1 [1]
+   cout << "inf2h = " << inf2h << endl; // Information measure of correlation2 [1]
 }
