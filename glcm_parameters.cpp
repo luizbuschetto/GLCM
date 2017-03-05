@@ -127,8 +127,6 @@ void glcm(Mat &img)
         autoc = 0, cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0, HX = 0,
         HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0, indnc = 0, idmnc = 0;
 
-        // Falta corrp [1, 2]
-
    for(int i = 0; i < numLevels; i++)
    {
       HX = HX - px[i] * log(px[i] + 0.0000000000001);
@@ -140,6 +138,7 @@ void glcm(Mat &img)
           contr = contr + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
           corrm = corrm + (((i - mu_i) * (j - mu_j) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
           cprom = cprom + pow((i + j - mu_i - mu_j), 4) * gl.at<float>(i, j);
+          corrp = corrp + gl.at<float>(i,j) / (1 + pow(i - j, 2) / pow(numLevels, 2));
           cshad = cshad + pow((i + j - mu_i - mu_j), 3) * gl.at<float>(i, j);
           dissi = dissi + (abs(i - j) * gl.at<float>(i, j));
           energ = energ + gl.at<float>(i,j) * gl.at<float>(i,j);
@@ -174,26 +173,26 @@ void glcm(Mat &img)
       inf1h = (HXY - HXY1) / valueH;
       inf2h = pow((1 - exp(-2 * (HXY2 - HXY))), 0.5);
 
-   cout << "autoc = " << autoc << endl;   // Autocorrelation      [2]
-   cout << "contr = " << contr << endl;   // Contrast             [1,2]
-   cout << "corrm = " << corrm << endl;   // Correlation (MATLAB)
-   cout << "corrp = " << corrp << endl;   // Correlation [1, 2]
-   cout << "cprom = " << cprom << endl;   // Cluster Prominence   [2]
-   cout << "cshad = " << cshad << endl;   // Cluster Shade        [2]
-   cout << "dissi = " << dissi << endl;   // Dissimilarity        [2]
-   cout << "energ = " << energ << endl;   // Energy               [1, 2]
-   cout << "entro = " << entro << endl;   // Entropy              [2]
-   cout << "homom = " << homom << endl;   // Inverse difference (INV)  [3]
-   cout << "homop = " << homop << endl;   // Homogenity/IDM           [2]
-   cout << "maxpr = " << maxpr << endl;   // Maximum probability      [2]
-   cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance [1]
-   cout << "savgh = " << savgh << endl;   // Sum Average              [1]
-   cout << "senth = " << senth << endl;   // Sum entropy              [1]
-   cout << "svarh = " << svarh << endl;   // Sum variance             [1]
-   cout << "dvarh = " << dvarh << endl;   // Difference variance      [1]
-   cout << "denth = " << denth << endl;   // Difference entropy       [1]
-   cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1 [1]
-   cout << "inf2h = " << inf2h << endl;   // Information measure of correlation2 [1]
-   cout << "indnc = " << indnc << endl;   // Inverse difference normalized (INN) [3]
+   cout << "autoc = " << autoc << endl;   // Autocorrelation                            [2]
+   cout << "contr = " << contr << endl;   // Contrast                                   [1,2]
+   cout << "corrm = " << corrm << endl;   // Correlation                                [MATLAB]
+   cout << "corrp = " << corrp << endl;   // Correlation                                [1, 2]
+   cout << "cprom = " << cprom << endl;   // Cluster Prominence                         [2]
+   cout << "cshad = " << cshad << endl;   // Cluster Shade                              [2]
+   cout << "dissi = " << dissi << endl;   // Dissimilarity                              [2]
+   cout << "energ = " << energ << endl;   // Energy                                     [1, 2]
+   cout << "entro = " << entro << endl;   // Entropy                                    [2]
+   cout << "homom = " << homom << endl;   // Inverse difference (INV)                   [3]
+   cout << "homop = " << homop << endl;   // Homogenity/IDM                             [2]
+   cout << "maxpr = " << maxpr << endl;   // Maximum probability                        [2]
+   cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance                   [1]
+   cout << "senth = " << senth << endl;   // Sum entropy                                [1]
+   cout << "savgh = " << savgh << endl;   // Sum Average                                [1]
+   cout << "svarh = " << svarh << endl;   // Sum variance                               [1]
+   cout << "dvarh = " << dvarh << endl;   // Difference variance                        [1]
+   cout << "denth = " << denth << endl;   // Difference entropy                         [1]
+   cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1        [1]
+   cout << "inf2h = " << inf2h << endl;   // Information measure of correlation2        [1]
+   cout << "indnc = " << indnc << endl;   // Inverse difference normalized (INN)        [3]
    cout << "idmnc = " << idmnc << endl;   // Inverse difference moment normalized (IDN) [3]
 }
