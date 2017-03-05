@@ -97,6 +97,9 @@ void glcm(Mat &img)
           py[i] = py[i] + gl.at<float>(i, j);
       }
 
+      float test1 = sigma_i;
+      float test2 = sigma_j;
+
     sigma_i = sqrt(sigma_i);
     sigma_j = sqrt(sigma_j);
 
@@ -114,16 +117,17 @@ void glcm(Mat &img)
     }
 
     float dvarh = 0, denth = 0;
-
     for (int i = 0; i < numLevels; i++)
     {
         dvarh = dvarh + (pow(i, 2) * dif_pixels[i]);
         denth = denth - dif_pixels[i] * log(dif_pixels[i] + 0.0000000000001); //¹
     }
 
-   float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, autoc = 0,
-         cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0,
-         HX = 0, HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0;
+   float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, corrp = 0,
+        autoc = 0, cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0, HX = 0,
+        HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0, indnc = 0, idmnc = 0;
+
+        // Falta corrp [1, 2]
 
    for(int i = 0; i < numLevels; i++)
    {
@@ -154,6 +158,9 @@ void glcm(Mat &img)
           HXY = HXY - gl.at<float>(i, j) * log(gl.at<float>(i, j) + 0.0000000000001);
           HXY1 = HXY1 - gl.at<float>(i, j) * log(px[i] * py[j] + 0.0000000000001);
           HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j] + 0.0000000000001);
+
+          indnc = indnc + (gl.at<float>(i, j) / (1 + (pow(abs(i - j), 2)) / pow(numLevels, 2)));
+          idmnc = idmnc + (gl.at<float>(i, j) / (1 + (pow(i - j, 2)) / pow(numLevels, 2)));
       }
     }
 
@@ -170,13 +177,14 @@ void glcm(Mat &img)
    cout << "autoc = " << autoc << endl;   // Autocorrelation      [2]
    cout << "contr = " << contr << endl;   // Contrast             [1,2]
    cout << "corrm = " << corrm << endl;   // Correlation (MATLAB)
+   cout << "corrp = " << corrp << endl;   // Correlation [1, 2]
    cout << "cprom = " << cprom << endl;   // Cluster Prominence   [2]
    cout << "cshad = " << cshad << endl;   // Cluster Shade        [2]
    cout << "dissi = " << dissi << endl;   // Dissimilarity        [2]
-   cout << "energ = " << energ << endl;   // Energy               [1,2]
+   cout << "energ = " << energ << endl;   // Energy               [1, 2]
    cout << "entro = " << entro << endl;   // Entropy              [2]
-   cout << "homom = " << homom << endl;   // Homogenity (MATLAB)
-   cout << "homop = " << homop << endl;   // Homogenity/IDM       [2]
+   cout << "homom = " << homom << endl;   // Inverse difference (INV)  [3]
+   cout << "homop = " << homop << endl;   // Homogenity/IDM           [2]
    cout << "maxpr = " << maxpr << endl;   // Maximum probability      [2]
    cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance [1]
    cout << "savgh = " << savgh << endl;   // Sum Average              [1]
@@ -185,5 +193,7 @@ void glcm(Mat &img)
    cout << "dvarh = " << dvarh << endl;   // Difference variance      [1]
    cout << "denth = " << denth << endl;   // Difference entropy       [1]
    cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1 [1]
-   cout << "inf2h = " << inf2h << endl; // Information measure of correlation2 [1]
+   cout << "inf2h = " << inf2h << endl;   // Information measure of correlation2 [1]
+   cout << "indnc = " << indnc << endl;   // Inverse difference normalized (INN) [3]
+   cout << "idmnc = " << idmnc << endl;   // Inverse difference moment normalized (IDN) [3]
 }
