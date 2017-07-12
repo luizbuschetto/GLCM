@@ -42,7 +42,7 @@ int main()
          cout << "No image!";
          return 0;
       }
-      cvtColor(img, img, CV_RGB2GRAY);
+      cvtColor(img, img, CV_BGR2GRAY);
       glcm(img);
       // namedWindow("Image", WINDOW_NORMAL);
       // imshow("Image", img);
@@ -53,12 +53,23 @@ int main()
 void glcm(Mat &img)
 {
   int numLevels = 256;
-  Mat gl = Mat::zeros(numLevels, numLevels, CV_32FC1);
+  Mat gl = Mat::zeros(numLevels, numLevels, CV_32F);
+  Mat imgCopy = Mat::zeros(img.rows, img.cols, img.type());
+
+  img.copyTo(imgCopy);
+
+  imgCopy.convertTo(img, CV_32F, (numLevels - 1)/255.5);
+
+  for(int i = 0; i < img.rows; i++)
+     for(int j = 0; j < img.cols; j++)
+        img.at<float>(i,j) = round(img.at<float>(i,j)) + 1;
 
   //Creating GLCM matrix with 256 levels, radius=1 and in the horizontal direction
   for(int i = 0; i < img.rows; i++)
      for(int j = 0; j < img.cols - 1; j++)
-         gl.at<float>(img.at<uchar>(i,j), img.at<uchar>(i,j+1)) = gl.at<float>(img.at<uchar>(i,j), img.at<uchar>(i,j+1)) + 1;
+         gl.at<float>(img.at<float>(i,j), img.at<float>(i,j+1)) = gl.at<float>(img.at<float>(i,j), img.at<float>(i,j+1)) + 1;
+
+  //cout << gl << endl;
 
  // normalizing glcm matrix for parameter determination
   gl = gl + gl.t();
@@ -97,8 +108,8 @@ void glcm(Mat &img)
           py[i] = py[i] + gl.at<float>(i, j);
       }
 
-      float test1 = sigma_i;
-      float test2 = sigma_j;
+      // float test1 = sigma_i;
+      // float test2 = sigma_j;
 
     sigma_i = sqrt(sigma_i);
     sigma_j = sqrt(sigma_j);
