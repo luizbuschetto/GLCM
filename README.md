@@ -30,13 +30,13 @@ Inverse difference (INV) [3]     		        (homom)<br>
 Inverse difference normalized (INN) [3]   		(indnc)<br>
 Inverse difference moment normalized [3]  	(idmnc)<br>
 
-¹ The number inside de brackets shows where the formula can be found (the papers below are included in this repository). 
+¹ The number inside of the brackets shows where the formula can be found (the papers below are included in this repository). 
 
 <h3>References:</h3>
 [1] R. M. Haralick, K. Shanmugam, and I. Dinstein, Textural Features of Image Classification, IEEE Transactions on Systems, Man and Cybernetics, vol. SMC-3, no. 6, Nov. 1973;<br>
 [2] L. Soh and C. Tsatsoulis, Texture Analysis of SAR Sea Ice Imagery Using Gray Level Co-Occurrence Matrices, IEEE Transactions on Geoscience and Remote Sensing, vol. 37, no. 2, March 1999;<br>
 [3] D A. Clausi, An analysis of co-occurrence texture statistics as a function of grey level quantization, Can. J. Remote Sensing, vol. 28, no.1, pp. 45-62, 2002;<br>
-The features with "MATLAB" uses the definition proposed by the software and it can be found here: https://www.mathworks.com/help/images/ref/graycoprops.html 
+The features with "MATLAB" uses the definition proposed by the software and can be found here: https://www.mathworks.com/help/images/ref/graycoprops.html 
 
 <h2>How to use:</h2>
 <i> ./main image_path number_of_levels </i>
