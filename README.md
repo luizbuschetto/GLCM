@@ -30,7 +30,7 @@ Inverse difference (INV) [3]     		        (homom)<br>
 Inverse difference normalized (INN) [3]   		(indnc)<br>
 Inverse difference moment normalized [3]  	(idmnc)<br>
 
-¹ The number inside of the brackets shows where the formula can be found (the papers below are included in this repository). 
+¹ The number inside the brackets shows where the formula can be found (the papers below are included in this repository). 
 
 <h3>References:</h3>
 [1] R. M. Haralick, K. Shanmugam, and I. Dinstein, Textural Features of Image Classification, IEEE Transactions on Systems, Man and Cybernetics, vol. SMC-3, no. 6, Nov. 1973;<br>
