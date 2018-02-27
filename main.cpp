@@ -171,7 +171,7 @@ void glcm(Mat &img, int numLevels)
 
     for(int j = 0; j < numLevels; j++)
     {
-      autoc = autoc + i * j * glcm.at<float>(i,j);
+      autoc = autoc + (i+1) * (j+1) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
       contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
       corrm = corrm + (((i - mu_i) * (j - mu_j) * glcm.at<float>(i,j)) / (sigma_i * sigma_j));
       cprom = cprom + pow((i + j - mu_i - mu_j), 4) * glcm.at<float>(i,j);
@@ -223,9 +223,9 @@ void glcm(Mat &img, int numLevels)
   cout << "homop = " << homop << endl;   // Homogenity/IDM                             [2]
   cout << "maxpr = " << maxpr << endl;   // Maximum probability                        [2]
   cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance                   [1]
-  cout << "senth = " << senth << endl;   // Sum entropy                                [1]
   cout << "savgh = " << savgh << endl;   // Sum Average                                [1]
   cout << "svarh = " << svarh << endl;   // Sum variance                               [1]
+  cout << "senth = " << senth << endl;   // Sum entropy                                [1]
   cout << "dvarh = " << dvarh << endl;   // Difference variance                        [1]
   cout << "denth = " << denth << endl;   // Difference entropy                         [1]
   cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1        [1]
