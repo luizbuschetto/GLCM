@@ -59,12 +59,6 @@ int main(int argc, char* argv[])
 
 void glcm(Mat &img, int numLevels)
 {
-  // int glcm[numLevels][numLevels];
-  // for (int i = 0; i < numLevels; i++){
-  //   for (int j = 0; j < numLevels; j++){
-  //     glcm[i][j] = 0;
-  //   }
-  // }
 
   Mat glcm = Mat::zeros(numLevels, numLevels, CV_32F);
 
@@ -83,18 +77,8 @@ void glcm(Mat &img, int numLevels)
     for(int j = 0; j < img.cols-1; j++)
     {
       glcm.at<float>(img.at<uchar>(i,j) - 1, img.at<uchar>(i,j+1) - 1) += 1;
-      //glcm[img.at<uchar>(i,j) - 1][img.at<uchar>(i,j+1) - 1] += 1;
     }      
   }
-
-  cout << glcm << endl;
-
-  // for (int i = 0; i < numLevels; i++){
-  //   for (int j = 0; j < numLevels; j++){
-  //     cout << glcm[i][j] << "\t";
-  //   }
-  //   cout << endl;
-  // }
 
   // Normalizing GLCM matrix for parameter determination
   glcm = glcm + glcm.t();
@@ -189,7 +173,7 @@ void glcm(Mat &img, int numLevels)
       if (glcm.at<float>(i,j) > maxpr)
         maxpr = glcm.at<float>(i,j);
 
-      sosvh = sosvh + (pow(i - mu, 2) * glcm.at<float>(i,j));
+      sosvh = sosvh + (pow((i+1) - mu, 2) * glcm.at<float>(i,j));
 
       HXY = HXY - glcm.at<float>(i,j) * log(glcm.at<float>(i,j) + 0.0000000000001);
       HXY1 = HXY1 - glcm.at<float>(i,j) * log(px[i] * py[j] + 0.0000000000001);
