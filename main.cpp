@@ -59,12 +59,14 @@ int main(int argc, char* argv[])
 
 void glcm(Mat &img, int numLevels)
 {
-  int glcm[numLevels][numLevels];
-  for (int i = 0; i < numLevels; i++){
-    for (int j = 0; j < numLevels; j++){
-      glcm[i][j] = 0;
-    }
-  }
+  // int glcm[numLevels][numLevels];
+  // for (int i = 0; i < numLevels; i++){
+  //   for (int j = 0; j < numLevels; j++){
+  //     glcm[i][j] = 0;
+  //   }
+  // }
+
+  Mat glcm = Mat::zeros(numLevels, numLevels, CV_32F);
 
   // Normalizing
   float slope = float(numLevels) / 255; // 255 is the max pixel value for the image type
@@ -80,151 +82,154 @@ void glcm(Mat &img, int numLevels)
   for(int i = 0; i < img.rows; i++){
     for(int j = 0; j < img.cols-1; j++)
     {
-      glcm[int(img.at<uchar>(i,j)) - 1][int(img.at<uchar>(i,j+1)) - 1] += 1;
+      glcm.at<float>(img.at<uchar>(i,j) - 1, img.at<uchar>(i,j+1) - 1) += 1;
+      //glcm[img.at<uchar>(i,j) - 1][img.at<uchar>(i,j+1) - 1] += 1;
     }      
   }
 
-  for (int i = 0; i < numLevels; i++){
-    for (int j = 0; j < numLevels; j++){
-      cout << glcm[i][j] << "\t";
+  cout << glcm << endl;
+
+  // for (int i = 0; i < numLevels; i++){
+  //   for (int j = 0; j < numLevels; j++){
+  //     cout << glcm[i][j] << "\t";
+  //   }
+  //   cout << endl;
+  // }
+
+  // Normalizing GLCM matrix for parameter determination
+  glcm = glcm + glcm.t();
+  glcm = glcm / sum(glcm)[0];
+
+  // Means
+  float mu_i = 0, mu_j = 0;
+  float mu = 0;
+  for(int i = 0; i < numLevels; i++){
+    for(int j = 0; j < numLevels; j++)
+    {
+      mu = mu + glcm.at<float>(i,j);
+      mu_i = mu_i + (i * glcm.at<float>(i,j));
+      mu_j = mu_j + (j * glcm.at<float>(i,j));
     }
-    cout << endl;
   }
 
-  // // Normalizing GLCM matrix for parameter determination
-  // gl = gl + gl.t();
-  // gl = gl / sum(gl)[0];
+  mu = mu / pow(numLevels, 2);
 
-  // // Means
-  // float mu_i = 0, mu_j = 0;
-  // float mu = 0;
-  // for(int i = 0; i < numLevels; i++){
-  //   for(int j = 0; j < numLevels; j++)
-  //   {
-  //     mu = mu + gl.at<float>(i,j);
-  //     mu_i = mu_i + (i * gl.at<float>(i,j));
-  //     mu_j = mu_j + (j * gl.at<float>(i,j));
-  //   }
-  // }
+  // Standard Deviation
+  float sigma_i = 0, sigma_j = 0;
+  vector<float> sum_pixels(2 * numLevels);    // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
+  vector<float> dif_pixels(2 * numLevels);    // dif_pixels[i + j] = p_{x - y}(k), where k = |i + j|
+  vector<float> px(numLevels), py(numLevels); // Marginal-probability matrix obtained by summing the rows of p(i, j) (Matrix gl) [2]
 
-  // mu = mu / pow(numLevels, 2);
+  for(int i = 0; i < numLevels; i++)
+  {
+    for(int j = 0; j < numLevels; j++)
+    {
+      sigma_i = sigma_i + ((i - mu_i) * (i - mu_i) * glcm.at<float>(i,j));
+      sigma_j = sigma_j + ((i - mu_j) * (i - mu_j) * glcm.at<float>(i,j));
 
-  // // Standard Deviation
-  // float sigma_i = 0, sigma_j = 0;
-  // vector<float> sum_pixels(2 * numLevels);    // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
-  // vector<float> dif_pixels(2 * numLevels);    // dif_pixels[i + j] = p_{x - y}(k), where k = |i + j|
-  // vector<float> px(numLevels), py(numLevels); // Marginal-probability matrix obtained by summing the rows of p(i, j) (Matrix gl) [2]
+      // Implementing savgh - Sum Average [1]
+      if (i + j >= 2)
+        sum_pixels[i + j] = sum_pixels[i + j] + glcm.at<float>(i,j);
 
-  // for(int i = 0; i < numLevels; i++)
-  // {
-  //   for(int j = 0; j < numLevels; j++)
-  //   {
-  //     sigma_i = sigma_i + ((i - mu_i) * (i - mu_i) * gl.at<float>(i,j));
-  //     sigma_j = sigma_j + ((i - mu_j) * (i - mu_j) * gl.at<float>(i,j));
+      dif_pixels[abs(i - j)] = dif_pixels[abs(i - j)] + glcm.at<float>(i,j);
+      px[j] = px[j] + glcm.at<float>(i,j);
+      py[i] = py[i] + glcm.at<float>(i,j);
+    }
+  }
 
-  //     // Implementing savgh - Sum Average [1]
-  //     if (i + j >= 2)
-  //       sum_pixels[i + j] = sum_pixels[i + j] + gl.at<float>(i,j);
+  sigma_i = sqrt(sigma_i);
+  sigma_j = sqrt(sigma_j);
 
-  //     dif_pixels[abs(i - j)] = dif_pixels[abs(i - j)] + gl.at<float>(i,j);
-  //     px[j] = px[j] + gl.at<float>(i, j);
-  //     py[i] = py[i] + gl.at<float>(i, j);
-  //   }
-  // }
+  float savgh = 0, senth = 0;
+  for(int i = 2; i < 2 * numLevels; i++)
+  {
+    savgh = savgh + (i * sum_pixels[i]);
+    senth = senth - (sum_pixels[i] * log(sum_pixels[i] + 0.0000000000001)); //¹
+  }
 
-  // sigma_i = sqrt(sigma_i);
-  // sigma_j = sqrt(sigma_j);
+  float svarh = 0;
+  for(int i = 2; i < 2 * numLevels; i++)
+  {
+    svarh = svarh + pow(i - senth, 2) * sum_pixels[i];
+  }
 
-  // float savgh = 0, senth = 0;
-  // for(int i = 2; i < 2 * numLevels; i++)
-  // {
-  //   savgh = savgh + (i * sum_pixels[i]);
-  //   senth = senth - (sum_pixels[i] * log(sum_pixels[i] + 0.0000000000001)); //¹
-  // }
+  float dvarh = 0, denth = 0;
+  for (int i = 0; i < numLevels; i++)
+  {
+    dvarh = dvarh + (pow(i, 2) * dif_pixels[i]);
+    denth = denth - dif_pixels[i] * log(dif_pixels[i] + 0.0000000000001); //¹
+  }
 
-  // float svarh = 0;
-  // for(int i = 2; i < 2 * numLevels; i++)
-  // {
-  //   svarh = svarh + pow(i - senth, 2) * sum_pixels[i];
-  // }
+  float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, corrp = 0,
+  autoc = 0, cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0, HX = 0,
+  HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0, indnc = 0, idmnc = 0;
 
-  // float dvarh = 0, denth = 0;
-  // for (int i = 0; i < numLevels; i++)
-  // {
-  //   dvarh = dvarh + (pow(i, 2) * dif_pixels[i]);
-  //   denth = denth - dif_pixels[i] * log(dif_pixels[i] + 0.0000000000001); //¹
-  // }
+  for(int i = 0; i < numLevels; i++)
+  {
+    HX = HX - px[i] * log(px[i] + 0.0000000000001);
+    HY = HY - py[i] * log(py[i] + 0.0000000000001);
 
-  // float energ = 0, contr = 0, homom = 0, homop = 0, entro = 0, corrm = 0, corrp = 0,
-  // autoc = 0, cprom = 0, cshad = 0, dissi = 0, maxpr = 0, sosvh = 0, HX = 0,
-  // HY = 0, HXY = 0, HXY1 = 0, HXY2 = 0, inf1h = 0, inf2h = 0, indnc = 0, idmnc = 0;
+    for(int j = 0; j < numLevels; j++)
+    {
+      autoc = autoc + i * j * glcm.at<float>(i,j);
+      contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
+      corrm = corrm + (((i - mu_i) * (j - mu_j) * glcm.at<float>(i,j)) / (sigma_i * sigma_j));
+      cprom = cprom + pow((i + j - mu_i - mu_j), 4) * glcm.at<float>(i,j);
+      corrp = corrp + glcm.at<float>(i,j) / (1 + pow(i - j, 2) / pow(numLevels, 2));
+      cshad = cshad + pow((i + j - mu_i - mu_j), 3) * glcm.at<float>(i,j);
+      dissi = dissi + (abs(i - j) * glcm.at<float>(i,j));
+      energ = energ + glcm.at<float>(i,j) * glcm.at<float>(i,j);
 
-  // for(int i = 0; i < numLevels; i++)
-  // {
-  //   HX = HX - px[i] * log(px[i] + 0.0000000000001);
-  //   HY = HY - py[i] * log(py[i] + 0.0000000000001);
+      if(glcm.at<float>(i,j) != 0)
+        entro = entro - glcm.at<float>(i,j) * log(glcm.at<float>(i,j));
 
-  //   for(int j = 0; j < numLevels; j++)
-  //   {
-  //     autoc = autoc + i * j * gl.at<float>(i,j);
-  //     contr = contr + (abs(i-j) * abs(i-j) * gl.at<float>(i,j));
-  //     corrm = corrm + (((i - mu_i) * (j - mu_j) * gl.at<float>(i,j)) / (sigma_i * sigma_j));
-  //     cprom = cprom + pow((i + j - mu_i - mu_j), 4) * gl.at<float>(i, j);
-  //     corrp = corrp + gl.at<float>(i,j) / (1 + pow(i - j, 2) / pow(numLevels, 2));
-  //     cshad = cshad + pow((i + j - mu_i - mu_j), 3) * gl.at<float>(i, j);
-  //     dissi = dissi + (abs(i - j) * gl.at<float>(i, j));
-  //     energ = energ + gl.at<float>(i,j) * gl.at<float>(i,j);
+      homom = homom + glcm.at<float>(i,j) / (1 + abs(i-j));
+      homop = homop + (glcm.at<float>(i,j) / (1 + ((i - j) * (i - j))));
 
-  //     if(gl.at<float>(i,j) != 0)
-  //       entro = entro - gl.at<float>(i,j) * log(gl.at<float>(i,j));
+      if (glcm.at<float>(i,j) > maxpr)
+        maxpr = glcm.at<float>(i,j);
 
-  //     homom = homom + gl.at<float>(i,j) / (1 + abs(i-j));
-  //     homop = homop + (gl.at<float>(i,j) / (1 + ((i - j) * (i - j))));
+      sosvh = sosvh + (pow(i - mu, 2) * glcm.at<float>(i,j));
 
-  //     if (gl.at<float>(i, j) > maxpr)
-  //       maxpr = gl.at<float>(i, j);
+      HXY = HXY - glcm.at<float>(i,j) * log(glcm.at<float>(i,j) + 0.0000000000001);
+      HXY1 = HXY1 - glcm.at<float>(i,j) * log(px[i] * py[j] + 0.0000000000001);
+      HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j] + 0.0000000000001);
 
-  //     sosvh = sosvh + (pow(i - mu, 2) * gl.at<float>(i, j));
+      indnc = indnc + (glcm.at<float>(i,j) / (1 + (pow(abs(i - j), 2)) / pow(numLevels, 2)));
+      idmnc = idmnc + (glcm.at<float>(i,j) / (1 + (pow(i - j, 2)) / pow(numLevels, 2)));
+    }
+  }
 
-  //     HXY = HXY - gl.at<float>(i, j) * log(gl.at<float>(i, j) + 0.0000000000001);
-  //     HXY1 = HXY1 - gl.at<float>(i, j) * log(px[i] * py[j] + 0.0000000000001);
-  //     HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j] + 0.0000000000001);
+  float valueH = 0;
 
-  //     indnc = indnc + (gl.at<float>(i, j) / (1 + (pow(abs(i - j), 2)) / pow(numLevels, 2)));
-  //     idmnc = idmnc + (gl.at<float>(i, j) / (1 + (pow(i - j, 2)) / pow(numLevels, 2)));
-  //   }
-  // }
+  if (HX >= HY)
+    valueH = HX;
+  else
+    valueH = HY;
 
-  // float valueH = 0;
+  inf1h = (HXY - HXY1) / valueH;
+  inf2h = pow((1 - exp(-2 * (HXY2 - HXY))), 0.5);
 
-  // if (HX >= HY)
-  //   valueH = HX;
-  // else
-  //   valueH = HY;
-
-  // inf1h = (HXY - HXY1) / valueH;
-  // inf2h = pow((1 - exp(-2 * (HXY2 - HXY))), 0.5);
-
-  // cout << "autoc = " << autoc << endl;   // Autocorrelation                            [2]
-  // cout << "contr = " << contr << endl;   // Contrast                                   [1,2]
-  // cout << "corrm = " << corrm << endl;   // Correlation                                [MATLAB]
-  // cout << "corrp = " << corrp << endl;   // Correlation                                [1, 2]
-  // cout << "cprom = " << cprom << endl;   // Cluster Prominence                         [2]
-  // cout << "cshad = " << cshad << endl;   // Cluster Shade                              [2]
-  // cout << "dissi = " << dissi << endl;   // Dissimilarity                              [2]
-  // cout << "energ = " << energ << endl;   // Energy                                     [1, 2]
-  // cout << "entro = " << entro << endl;   // Entropy                                    [2]
-  // cout << "homom = " << homom << endl;   // Inverse difference (INV)                   [3]
-  // cout << "homop = " << homop << endl;   // Homogenity/IDM                             [2]
-  // cout << "maxpr = " << maxpr << endl;   // Maximum probability                        [2]
-  // cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance                   [1]
-  // cout << "senth = " << senth << endl;   // Sum entropy                                [1]
-  // cout << "savgh = " << savgh << endl;   // Sum Average                                [1]
-  // cout << "svarh = " << svarh << endl;   // Sum variance                               [1]
-  // cout << "dvarh = " << dvarh << endl;   // Difference variance                        [1]
-  // cout << "denth = " << denth << endl;   // Difference entropy                         [1]
-  // cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1        [1]
-  // cout << "inf2h = " << inf2h << endl;   // Information measure of correlation2        [1]
-  // cout << "indnc = " << indnc << endl;   // Inverse difference normalized (INN)        [3]
-  // cout << "idmnc = " << idmnc << endl;   // Inverse difference moment normalized (IDN) [3]
+  cout << "autoc = " << autoc << endl;   // Autocorrelation                            [2]
+  cout << "contr = " << contr << endl;   // Contrast                                   [1,2]
+  cout << "corrm = " << corrm << endl;   // Correlation                                [MATLAB]
+  cout << "corrp = " << corrp << endl;   // Correlation                                [1, 2]
+  cout << "cprom = " << cprom << endl;   // Cluster Prominence                         [2]
+  cout << "cshad = " << cshad << endl;   // Cluster Shade                              [2]
+  cout << "dissi = " << dissi << endl;   // Dissimilarity                              [2]
+  cout << "energ = " << energ << endl;   // Energy                                     [1, 2]
+  cout << "entro = " << entro << endl;   // Entropy                                    [2]
+  cout << "homom = " << homom << endl;   // Inverse difference (INV)                   [3]
+  cout << "homop = " << homop << endl;   // Homogenity/IDM                             [2]
+  cout << "maxpr = " << maxpr << endl;   // Maximum probability                        [2]
+  cout << "sosvh = " << sosvh << endl;   // Sum of Squares: Variance                   [1]
+  cout << "senth = " << senth << endl;   // Sum entropy                                [1]
+  cout << "savgh = " << savgh << endl;   // Sum Average                                [1]
+  cout << "svarh = " << svarh << endl;   // Sum variance                               [1]
+  cout << "dvarh = " << dvarh << endl;   // Difference variance                        [1]
+  cout << "denth = " << denth << endl;   // Difference entropy                         [1]
+  cout << "inf1h = " << inf1h << endl;   // Information measure of correlation1        [1]
+  cout << "inf2h = " << inf2h << endl;   // Information measure of correlation2        [1]
+  cout << "indnc = " << indnc << endl;   // Inverse difference normalized (INN)        [3]
+  cout << "idmnc = " << idmnc << endl;   // Inverse difference moment normalized (IDN) [3]
 }
