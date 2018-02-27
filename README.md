@@ -1,10 +1,10 @@
 <h1>Gray-Level Co-Occurence Matrix (GLCM)</h1>
 This is the implementation of Gray-Level Co-Occurence Matrix (GLCM) in C/C++ (OpenCV).  It was compiled using OpenCV 3.4.0, in a Ubuntu based distro. <br>
 
-This algorithm extracts 23 features and was proposed by Avinash Uppuluri. The original code (in MATLAB) can be found in:
+This algorithm extracts 22 features and was proposed by Avinash Uppuluri. The original code (in MATLAB) can be found in:
  https://www.mathworks.com/matlabcentral/fileexchange/22187-glcm-texture-features
 
-The 23 features¹ are:
+The 22 features¹ are:
 
 Autocorrelation: [2]                      				(autoc)<br>
 Contrast: MATLAB/[1,2]                    			(contr)<br>
@@ -26,7 +26,6 @@ Difference variance [1]                   				(dvarh)<br>
 Difference entropy [1]                    				(denth)<br>
 Information measure of correlation1 [1]   	(inf1h)<br>
 Informaiton measure of correlation2 [1]   	(inf2h)<br>
-Inverse difference (INV) [3]     		        (homom)<br>
 Inverse difference normalized (INN) [3]   		(indnc)<br>
 Inverse difference moment normalized [3]  	(idmnc)<br>
 
