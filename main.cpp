@@ -100,7 +100,7 @@ void glcm(Mat &img, int numLevels)
 
   // Standard Deviation
   float sigma_i = 0, sigma_j = 0;
-  vector<float> sum_pixels(2 * numLevels);    // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
+  vector<float> sum_pixels((2 * numLevels)-1);    // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
   vector<float> dif_pixels(2 * numLevels);    // dif_pixels[i + j] = p_{x - y}(k), where k = |i + j|
   vector<float> px(numLevels), py(numLevels); // Marginal-probability matrix obtained by summing the rows of p(i, j) (Matrix gl) [2]
 
@@ -124,10 +124,14 @@ void glcm(Mat &img, int numLevels)
   sigma_i = sqrt(sigma_i);
   sigma_j = sqrt(sigma_j);
 
+  // for(int i = 0; i < (2*numLevels)-1; i++)
+  //     cout << sum_pixels[i] << endl;
+
   float savgh = 0, senth = 0;
-  for(int i = 2; i < 2 * numLevels; i++)
+  for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
-    savgh = savgh + (i * sum_pixels[i]);
+    savgh = savgh + ((i+2) * sum_pixels[i]);
+    //cout << "i: " << i+1 << " | Sum: " << sum_pixels[i] << " = " << savgh << endl;
     senth = senth - (sum_pixels[i] * log(sum_pixels[i] + 0.0000000000001)); //¹
   }
 
