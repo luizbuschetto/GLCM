@@ -130,15 +130,14 @@ void glcm(Mat &img, int numLevels)
   float savgh = 0, senth = 0;
   for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
-    savgh = savgh + ((i+2) * sum_pixels[i]);
-    //cout << "i: " << i+1 << " | Sum: " << sum_pixels[i] << " = " << savgh << endl;
+    savgh = savgh + ((i+2) * sum_pixels[i]); // +2 because matlab
     senth = senth - (sum_pixels[i] * log(sum_pixels[i] + 0.0000000000001)); //¹
   }
 
   float svarh = 0;
-  for(int i = 2; i < 2 * numLevels; i++)
+  for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
-    svarh = svarh + pow(i - senth, 2) * sum_pixels[i];
+    svarh = svarh + pow((i+2) - senth, 2) * sum_pixels[i]; // +2 because matlab
   }
 
   float dvarh = 0, denth = 0;
