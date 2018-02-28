@@ -157,9 +157,9 @@ void glcm(Mat &img, int numLevels)
     {
       autoc = autoc + (i+1) * (j+1) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
       contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
-      corrm = corrm + ((i+1) - mu_i) * ((j+1) - mu_j) * glcm.at<float>(i,j);
-      cprom = cprom + pow((i + j - mu_i - mu_j), 4) * glcm.at<float>(i,j);
-      cshad = cshad + pow((i + j - mu_i - mu_j), 3) * glcm.at<float>(i,j);
+      corrm = corrm + ((i+1) - mu_i) * ((j+1) - mu_j) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
+      cprom = cprom + pow(((i+1) + (j+1) - mu_i - mu_j), 4) * glcm.at<float>(i,j); //+1 because of MATLAB's notation 
+      cshad = cshad + pow(((i+1) + (j+1) - mu_i - mu_j), 3) * glcm.at<float>(i,j);
       dissi = dissi + (abs(i - j) * glcm.at<float>(i,j));
       energ = energ + glcm.at<float>(i,j) * glcm.at<float>(i,j);
 
