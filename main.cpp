@@ -124,9 +124,6 @@ void glcm(Mat &img, int numLevels)
   sigma_i = sqrt(sigma_i);
   sigma_j = sqrt(sigma_j);
 
-  // for(int i = 0; i < (2*numLevels)-1; i++)
-  //     cout << sum_pixels[i] << endl;
-
   float savgh = 0, senth = 0;
   for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
@@ -160,7 +157,7 @@ void glcm(Mat &img, int numLevels)
     {
       autoc = autoc + (i+1) * (j+1) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
       contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
-      corrm = corrm + (((i - mu_i) * (j - mu_j) * glcm.at<float>(i,j)) / (sigma_i * sigma_j));
+      corrm = corrm + ((i+1) - mu_i) * ((j+1) - mu_j) * glcm.at<float>(i,j);
       cprom = cprom + pow((i + j - mu_i - mu_j), 4) * glcm.at<float>(i,j);
       cshad = cshad + pow((i + j - mu_i - mu_j), 3) * glcm.at<float>(i,j);
       dissi = dissi + (abs(i - j) * glcm.at<float>(i,j));
@@ -186,12 +183,8 @@ void glcm(Mat &img, int numLevels)
     }
   }
 
-  cout << autoc << endl;
-  cout << mu_i << endl;
-  cout << mu_j << endl;
-  cout << sigma_i << endl;
-  cout << sigma_j << endl;
   corrp = (autoc - mu_i * mu_j) / (sigma_i * sigma_j);
+  corrm = corrm / (sigma_i * sigma_j);
 
   float valueH = 0;
 
