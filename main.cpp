@@ -1,29 +1,3 @@
-// %       GLCM Features (Soh, 1999; Haralick, 1973; Clausi 2002)
-// %           f1. Uniformity / Energy / Angular Second Moment (done)
-// %           f2. Entropy (done)
-// %           f3. Dissimilarity
-// %           f4. Contrast / Inertia (done)
-// %           f5. Inverse difference
-// %           f6. correlation (done)
-// %           f7. Homogeneity / Inverse difference moment (done)
-// %           f8. Autocorrelation
-// %           f9. Cluster Shade
-// %          f10. Cluster Prominence
-// %          f11. Maximum probability
-// %          f12. Sum of Squares
-// %          f13. Sum Average
-// %          f14. Sum Variance
-// %          f15. Sum Entropy
-// %          f16. Difference variance
-// %          f17. Difference entropy
-// %          f18. Information measures of correlation (1)
-// %          f19. Information measures of correlation (2)
-// %          f20. Maximal correlation coefficient
-// %          f21. Inverse difference normalized (INN)
-// %          f22. Inverse difference moment normalized (IDN)
-
-// Some formulas: http://murphylab.web.cmu.edu/publications/boland/boland_node26.html
-
 #include <iostream>
 #include <math.h>
 #include <opencv2/highgui/highgui.hpp>
@@ -63,8 +37,8 @@ void glcm(Mat &img, int numLevels)
   Mat glcm = Mat::zeros(numLevels, numLevels, CV_32F);
 
   // Normalizing
-  float slope = float(numLevels) / 255; // 255 is the max pixel value for the image type
-  float intercept = 1 - (slope * 0);    // 0 is the min pixel value for the image type
+  float slope = float(numLevels) / 255; // "255" is the maximum pixel value for the image type -> 0 ~ 255
+  float intercept = 1 - (slope * 0);    // "0"   is the minimum pixel value for the image type -> 0 ~ 255
 
   for(int i = 0; i < img.rows; i++){
     for(int j = 0; j < img.cols; j++){
@@ -81,7 +55,6 @@ void glcm(Mat &img, int numLevels)
   }
 
   // Normalizing GLCM matrix for parameter determination
-  glcm = glcm + glcm.t();
   glcm = glcm / sum(glcm)[0];
 
   // Means
@@ -100,9 +73,9 @@ void glcm(Mat &img, int numLevels)
 
   // Standard Deviation
   float sigma_i = 0, sigma_j = 0;
-  vector<float> sum_pixels((2 * numLevels)-1);    // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
-  vector<float> dif_pixels(2 * numLevels);    // dif_pixels[i + j] = p_{x - y}(k), where k = |i + j|
-  vector<float> px(numLevels), py(numLevels); // Marginal-probability matrix obtained by summing the rows of p(i, j) (Matrix gl) [2]
+  vector<float> sum_pixels((2 * numLevels)-1); // sum_pixels[i + j] = p_{x + y}(k), where k = i + j
+  vector<float> dif_pixels(2 * numLevels);     // dif_pixels[i + j] = p_{x - y}(k), where k = |i + j|
+  vector<float> px(numLevels), py(numLevels);  // Marginal-probability matrix obtained by summing the rows of p(i, j) (Matrix gl) [2]
 
   for(int i = 0; i < numLevels; i++)
   {
@@ -127,14 +100,14 @@ void glcm(Mat &img, int numLevels)
   float savgh = 0, senth = 0;
   for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
-    savgh = savgh + ((i+2) * sum_pixels[i]); // +2 because matlab
+    savgh = savgh + ((i+2) * sum_pixels[i]); 
     senth = senth - (sum_pixels[i] * log(sum_pixels[i] + 0.0000000000001)); //¹
   }
 
   float svarh = 0;
   for(int i = 0; i < (2 * numLevels) - 1; i++)
   {
-    svarh = svarh + pow((i+2) - senth, 2) * sum_pixels[i]; // +2 because matlab
+    svarh = svarh + pow((i+2) - senth, 2) * sum_pixels[i]; 
   }
 
   float dvarh = 0, denth = 0;
@@ -155,10 +128,10 @@ void glcm(Mat &img, int numLevels)
 
     for(int j = 0; j < numLevels; j++)
     {
-      autoc = autoc + (i+1) * (j+1) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
+      autoc = autoc + (i+1) * (j+1) * glcm.at<float>(i,j); 
       contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
-      corrm = corrm + ((i+1) - mu_i) * ((j+1) - mu_j) * glcm.at<float>(i,j); //+1 because of MATLAB's notation
-      cprom = cprom + pow(((i+1) + (j+1) - mu_i - mu_j), 4) * glcm.at<float>(i,j); //+1 because of MATLAB's notation 
+      corrm = corrm + ((i+1) - mu_i) * ((j+1) - mu_j) * glcm.at<float>(i,j); 
+      cprom = cprom + pow(((i+1) + (j+1) - mu_i - mu_j), 4) * glcm.at<float>(i,j); 
       cshad = cshad + pow(((i+1) + (j+1) - mu_i - mu_j), 3) * glcm.at<float>(i,j);
       dissi = dissi + (abs(i - j) * glcm.at<float>(i,j));
       energ = energ + glcm.at<float>(i,j) * glcm.at<float>(i,j);
@@ -178,7 +151,7 @@ void glcm(Mat &img, int numLevels)
       HXY1 = HXY1 - glcm.at<float>(i,j) * log(px[i] * py[j] + 0.0000000000001);
       HXY2 = HXY2 - px[i] * py[j] * log(px[i] * py[j] + 0.0000000000001);
 
-      indnc = indnc + (glcm.at<float>(i,j) / (1 + (pow(abs(i - j), 2)) / pow(numLevels, 2)));
+      indnc = indnc + (glcm.at<float>(i,j) / (1 + (float(abs(i - j)) / numLevels)));
       idmnc = idmnc + (glcm.at<float>(i,j) / (1 + (pow(i - j, 2)) / pow(numLevels, 2)));
     }
   }
