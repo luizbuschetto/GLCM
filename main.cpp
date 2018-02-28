@@ -91,8 +91,8 @@ void glcm(Mat &img, int numLevels)
     for(int j = 0; j < numLevels; j++)
     {
       mu = mu + glcm.at<float>(i,j);
-      mu_i = mu_i + (i * glcm.at<float>(i,j));
-      mu_j = mu_j + (j * glcm.at<float>(i,j));
+      mu_i = mu_i + ((i+1) * glcm.at<float>(i,j));
+      mu_j = mu_j + ((j+1) * glcm.at<float>(i,j));
     }
   }
 
@@ -108,8 +108,8 @@ void glcm(Mat &img, int numLevels)
   {
     for(int j = 0; j < numLevels; j++)
     {
-      sigma_i = sigma_i + ((i - mu_i) * (i - mu_i) * glcm.at<float>(i,j));
-      sigma_j = sigma_j + ((i - mu_j) * (i - mu_j) * glcm.at<float>(i,j));
+      sigma_i = sigma_i + (((i+1) - mu_i) * ((i+1) - mu_i) * glcm.at<float>(i,j));
+      sigma_j = sigma_j + (((i+1) - mu_j) * ((i+1) - mu_j) * glcm.at<float>(i,j));
 
       // Implementing savgh - Sum Average [1]
       if (i + j >= 2)
@@ -162,7 +162,6 @@ void glcm(Mat &img, int numLevels)
       contr = contr + (abs(i-j) * abs(i-j) * glcm.at<float>(i,j));
       corrm = corrm + (((i - mu_i) * (j - mu_j) * glcm.at<float>(i,j)) / (sigma_i * sigma_j));
       cprom = cprom + pow((i + j - mu_i - mu_j), 4) * glcm.at<float>(i,j);
-      corrp = corrp + glcm.at<float>(i,j) / (1 + pow(i - j, 2) / pow(numLevels, 2));
       cshad = cshad + pow((i + j - mu_i - mu_j), 3) * glcm.at<float>(i,j);
       dissi = dissi + (abs(i - j) * glcm.at<float>(i,j));
       energ = energ + glcm.at<float>(i,j) * glcm.at<float>(i,j);
@@ -186,6 +185,13 @@ void glcm(Mat &img, int numLevels)
       idmnc = idmnc + (glcm.at<float>(i,j) / (1 + (pow(i - j, 2)) / pow(numLevels, 2)));
     }
   }
+
+  cout << autoc << endl;
+  cout << mu_i << endl;
+  cout << mu_j << endl;
+  cout << sigma_i << endl;
+  cout << sigma_j << endl;
+  corrp = (autoc - mu_i * mu_j) / (sigma_i * sigma_j);
 
   float valueH = 0;
 
